@@ -6,9 +6,9 @@ terraform {
     }
   }
   backend "azurerm" {
-    resource_group_name   = "jihed"
-    storage_account_name  = "terraformvz"
-    container_name        = "jihed"
+    resource_group_name   = "vzapps-tf"
+    storage_account_name  = "terraformac"
+    container_name        = "terraform"
     key                   = "terraform.tfstate"
     }
 }
@@ -34,7 +34,7 @@ data "azurerm_client_config" "current" {}
 ##################################################################
 
 # Create the resource groups pour vzapps
-resource "azurerm_resource_group" "myrg" {
+resource "azurerm_resource_group" "we-vzapps" {
   name     = "rg-tea-we-vzapps"
   location = "West Europe"
 }
@@ -47,8 +47,8 @@ resource "azurerm_resource_group" "myrg" {
 ## Keyvault creation code
 resource "azurerm_key_vault" "keyvault" {
   name                = "prod-kv-we-test"
-  location            = azurerm_resource_group.myrg.location
-  resource_group_name = azurerm_resource_group.myrg.name
+  location            = azurerm_resource_group.we-vzapps.location
+  resource_group_name = azurerm_resource_group.we-vzapps.name
   tenant_id           = data.azurerm_client_config.current.tenant_id
   sku_name            = "standard"
 }
@@ -114,8 +114,8 @@ resource "azurerm_key_vault_secret" "CADNS-adminuser" {
 # Create NSG for DDIMGMT subnet
 resource "azurerm_network_security_group" "weddimgmt" {
   name                = "nsg-tea-we-ddimgmt"
-  location            = azurerm_resource_group.myrg.location
-  resource_group_name = azurerm_resource_group.myrg.name
+  location            = azurerm_resource_group.we-vzapps.location
+  resource_group_name = azurerm_resource_group.we-vzapps.name
 
   security_rule {
     name                       = "SSH"
@@ -188,8 +188,8 @@ resource "azurerm_network_security_group" "weddimgmt" {
 # Create NSG for DDIPRD subnet
 resource "azurerm_network_security_group" "weddiprd" {
   name                = "nsg-tea-we-ddiprd"
-  location            = azurerm_resource_group.myrg.location
-  resource_group_name = azurerm_resource_group.myrg.name
+  location            = azurerm_resource_group.we-vzapps.location
+  resource_group_name = azurerm_resource_group.we-vzapps.name
 
   security_rule {
     name                       = "SSH"
@@ -263,8 +263,8 @@ resource "azurerm_network_security_group" "weddiprd" {
 # Create NSG for NAC subnet
 resource "azurerm_network_security_group" "weddinac" {
   name                = "nsg-tea-we-nac"
-  location            = azurerm_resource_group.myrg.location
-  resource_group_name = azurerm_resource_group.myrg.name
+  location            = azurerm_resource_group.we-vzapps.location
+  resource_group_name = azurerm_resource_group.we-vzapps.name
 
   security_rule {
     name                       = "ssh"
@@ -283,15 +283,15 @@ resource "azurerm_network_security_group" "weddinac" {
 # Create a virtual network within the resource group
 resource "azurerm_virtual_network" "weapps" {
   name                = "vnet-tea-we-vzapps"
-  resource_group_name = azurerm_resource_group.myrg.name
-  location            = azurerm_resource_group.myrg.location
+  resource_group_name = azurerm_resource_group.we-vzapps.name
+  location            = azurerm_resource_group.we-vzapps.location
   address_space       = ["10.174.0.0/16"]
 }
 
 # Create ddimgmt subnet within the vnet
 resource "azurerm_subnet" "weddimgmt" {
   name                 = "snet-tea-we-ddimgmt"
-  resource_group_name  = azurerm_resource_group.myrg.name
+  resource_group_name  = azurerm_resource_group.we-vzapps.name
   virtual_network_name = azurerm_virtual_network.weapps.name
   address_prefixes     = ["10.174.32.0/28"]
   #network_security_group_id = azurerm_network_security_group.weddimgmt.id  
@@ -304,7 +304,7 @@ resource "azurerm_subnet_network_security_group_association" "weddimgmt-nsg" {
 # Create ddiprd subnet within the vnet
 resource "azurerm_subnet" "weddiprd" {
   name                 = "snet-tea-we-ddiprd"
-  resource_group_name  = azurerm_resource_group.myrg.name
+  resource_group_name  = azurerm_resource_group.we-vzapps.name
   virtual_network_name = azurerm_virtual_network.weapps.name
   address_prefixes     = ["10.174.32.16/28"]  
 }
@@ -326,8 +326,8 @@ resource "azurerm_subnet_network_security_group_association" "weddiprd-nsg" {
 ####
 resource "azurerm_storage_account" "bootdiastorageaccount-we" {
     name                        = "bootsateawedtest11"
-    location                     = azurerm_resource_group.myrg.location
-    resource_group_name          = azurerm_resource_group.myrg.name
+    location                     = azurerm_resource_group.we-vzapps.location
+    resource_group_name          = azurerm_resource_group.we-vzapps.name
     account_tier                = "Standard"
     account_replication_type    = "LRS"
 
@@ -352,8 +352,8 @@ resource "azurerm_resource_group" "ekprodweddigm-rg" {
 # create the mgmt network interface for GridMAster VM
 resource "azurerm_network_interface" "ekprodweddigm-ddimgmt-nic" {
   name                = "ekprodweddigm-ddimgmt-nic"
-  location            = azurerm_resource_group.myrg.location
-  resource_group_name = azurerm_resource_group.myrg.name
+  location            = azurerm_resource_group.we-vzapps.location
+  resource_group_name = azurerm_resource_group.we-vzapps.name
   
 
   ip_configuration {
@@ -368,8 +368,8 @@ resource "azurerm_network_interface" "ekprodweddigm-ddimgmt-nic" {
 # Create Prod network interface for GridMaster VM
 resource "azurerm_network_interface" "ekprodweddigm-ddiprd-nic" {
   name                = "ekprodweddigm-ddiprd-nic"
-  location            = azurerm_resource_group.myrg.location
-  resource_group_name = azurerm_resource_group.myrg.name
+  location            = azurerm_resource_group.we-vzapps.location
+  resource_group_name = azurerm_resource_group.we-vzapps.name
   
 
   ip_configuration {
@@ -447,8 +447,8 @@ resource "azurerm_resource_group" "ekprodweddirpt-rg" {
 # create the mgmt network interface for Reporting VM
 resource "azurerm_network_interface" "ekprodweddirpt-ddimgmt-nic" {
   name                = "ekprodweddirpt-ddimgmt-nic"
-  location            = azurerm_resource_group.myrg.location
-  resource_group_name = azurerm_resource_group.myrg.name
+  location            = azurerm_resource_group.we-vzapps.location
+  resource_group_name = azurerm_resource_group.we-vzapps.name
   
 
   ip_configuration {
@@ -463,8 +463,8 @@ resource "azurerm_network_interface" "ekprodweddirpt-ddimgmt-nic" {
 # Create Prod network interface for Reporting VM
 resource "azurerm_network_interface" "ekprodweddirpt-ddiprd-nic" {
   name                = "ekprodweddirpt-ddiprd-nic"
-  location            = azurerm_resource_group.myrg.location
-  resource_group_name = azurerm_resource_group.myrg.name
+  location            = azurerm_resource_group.we-vzapps.location
+  resource_group_name = azurerm_resource_group.we-vzapps.name
   
 
   ip_configuration {
@@ -548,8 +548,8 @@ resource "azurerm_resource_group" "ekprodweddicadns-rg" {
 # create the mgmt network interface for Cloud Automation VM
 resource "azurerm_network_interface" "ekprodweddicadns-ddimgmt-nic" {
   name                = "ekprodweddicadns-ddimgmt-nic"
-  location            = azurerm_resource_group.myrg.location
-  resource_group_name = azurerm_resource_group.myrg.name
+  location            = azurerm_resource_group.we-vzapps.location
+  resource_group_name = azurerm_resource_group.we-vzapps.name
   
 
   ip_configuration {
@@ -563,8 +563,8 @@ resource "azurerm_network_interface" "ekprodweddicadns-ddimgmt-nic" {
 # Create Prod network interface for Cloud Automation VM
 resource "azurerm_network_interface" "ekprodweddicadns-ddiprd-nic" {
   name                = "ekprodweddicadns-ddiprd-nic"
-  location            = azurerm_resource_group.myrg.location
-  resource_group_name = azurerm_resource_group.myrg.name
+  location            = azurerm_resource_group.we-vzapps.location
+  resource_group_name = azurerm_resource_group.we-vzapps.name
   
 
   ip_configuration {
@@ -638,7 +638,7 @@ resource "azurerm_virtual_machine" "ekprodweddicadns" {
 #################################################################
 
 # Create the resource groups pour vzapps2
-resource "azurerm_resource_group" "myrg2" {
+resource "azurerm_resource_group" "ne-vzapps" {
   name     = "rg-tea-sc-vzapps"
   location = "North Europe"
 }
@@ -646,8 +646,8 @@ resource "azurerm_resource_group" "myrg2" {
 ## Keyvault creation code
 resource "azurerm_key_vault" "keyvault2" {
   name                = "prod-kv-scvzapps-test"
-  location            = azurerm_resource_group.myrg2.location
-  resource_group_name = azurerm_resource_group.myrg2.name
+  location            = azurerm_resource_group.ne-vzapps.location
+  resource_group_name = azurerm_resource_group.ne-vzapps.name
   tenant_id           = data.azurerm_client_config.current.tenant_id
   sku_name            = "standard"
 }
@@ -713,8 +713,8 @@ resource "azurerm_key_vault_secret" "BKP-adminuser" {
 # Create NSG for DDIMGMT subnet
 resource "azurerm_network_security_group" "scddimgmt" {
   name                = "nsg-tea-sc-ddimgmt"
-  location            = azurerm_resource_group.myrg2.location
-  resource_group_name = azurerm_resource_group.myrg2.name
+  location            = azurerm_resource_group.ne-vzapps.location
+  resource_group_name = azurerm_resource_group.ne-vzapps.name
 
   security_rule {
     name                       = "SSH"
@@ -789,8 +789,8 @@ resource "azurerm_network_security_group" "scddimgmt" {
 # Create NSG for DDIPRD subnet
 resource "azurerm_network_security_group" "scddiprd" {
   name                = "nsg-tea-sc-ddiprd"
-  location            = azurerm_resource_group.myrg2.location
-  resource_group_name = azurerm_resource_group.myrg2.name
+  location            = azurerm_resource_group.ne-vzapps.location
+  resource_group_name = azurerm_resource_group.ne-vzapps.name
 
   security_rule {
     name                       = "SSH"
@@ -865,8 +865,8 @@ resource "azurerm_network_security_group" "scddiprd" {
 # Create NSG for NAC subnet
 resource "azurerm_network_security_group" "scddinac" {
   name                = "nsg-tea-sc-nac"
-  location            = azurerm_resource_group.myrg2.location
-  resource_group_name = azurerm_resource_group.myrg2.name
+  location            = azurerm_resource_group.ne-vzapps.location
+  resource_group_name = azurerm_resource_group.ne-vzapps.name
 
   security_rule {
     name                       = "ssh"
@@ -885,15 +885,15 @@ resource "azurerm_network_security_group" "scddinac" {
 # Create a virtual network within the resource group
 resource "azurerm_virtual_network" "scapps" {
   name                = "vnet-tea-sc-vzapps"
-  resource_group_name = azurerm_resource_group.myrg2.name
-  location            = azurerm_resource_group.myrg2.location
+  resource_group_name = azurerm_resource_group.ne-vzapps.name
+  location            = azurerm_resource_group.ne-vzapps.location
   address_space       = ["10.175.0.0/16"]
 }
 
 # Create ddimgmt subnet within the vnet
 resource "azurerm_subnet" "scddimgmt" {
   name                 = "snet-tea-sc-ddimgmt"
-  resource_group_name  = azurerm_resource_group.myrg2.name
+  resource_group_name  = azurerm_resource_group.ne-vzapps.name
   virtual_network_name = azurerm_virtual_network.scapps.name
   address_prefixes     = ["10.175.32.0/28"]  
 }
@@ -905,7 +905,7 @@ resource "azurerm_subnet_network_security_group_association" "scddimgmt-nsg" {
 # Create ddiprd subnet within the vnet
 resource "azurerm_subnet" "scddiprd" {
   name                 = "snet-tea-sc-ddiprd"
-  resource_group_name  = azurerm_resource_group.myrg2.name
+  resource_group_name  = azurerm_resource_group.ne-vzapps.name
   virtual_network_name = azurerm_virtual_network.scapps.name
   address_prefixes     = ["10.175.32.16/28"]  
 }
@@ -926,8 +926,8 @@ resource "azurerm_subnet_network_security_group_association" "scddiprd-nsg" {
 ####
 resource "azurerm_storage_account" "bootdiastorageaccount-sc" {
     name                        = "bootsatappstest"
-    location                     = azurerm_resource_group.myrg2.location
-    resource_group_name          = azurerm_resource_group.myrg2.name
+    location                     = azurerm_resource_group.ne-vzapps.location
+    resource_group_name          = azurerm_resource_group.ne-vzapps.name
     account_tier                = "Standard"
     account_replication_type    = "LRS"
 
@@ -952,8 +952,8 @@ resource "azurerm_resource_group" "ekprodscddigmc-rg" {
 # create the mgmt network interface for GridMAster VM
 resource "azurerm_network_interface" "ekprodscddigmc-ddimgmt-nic" {
   name                = "ekprodscddigmc-ddimgmt-nic"
-  location            = azurerm_resource_group.myrg2.location
-  resource_group_name = azurerm_resource_group.myrg2.name
+  location            = azurerm_resource_group.ne-vzapps.location
+  resource_group_name = azurerm_resource_group.ne-vzapps.name
   
 
   ip_configuration {
@@ -968,8 +968,8 @@ resource "azurerm_network_interface" "ekprodscddigmc-ddimgmt-nic" {
 # Create Prod network interface for GridMaster candidate VM
 resource "azurerm_network_interface" "ekprodscddigmc-ddiprd-nic" {
   name                = "ekprodscddigmc-ddiprd-nic"
-  location            = azurerm_resource_group.myrg2.location
-  resource_group_name = azurerm_resource_group.myrg2.name
+  location            = azurerm_resource_group.ne-vzapps.location
+  resource_group_name = azurerm_resource_group.ne-vzapps.name
   
 
   ip_configuration {
@@ -1049,8 +1049,8 @@ resource "azurerm_resource_group" "ekprodscddicadns-rg" {
 # create the mgmt network interface for Cloud Automation Replica VM
 resource "azurerm_network_interface" "ekprodscddicadns-ddimgmt-nic" {
   name                = "ekprodscddicadns-ddimgmt-nic"
-  location            = azurerm_resource_group.myrg2.location
-  resource_group_name = azurerm_resource_group.myrg2.name
+  location            = azurerm_resource_group.ne-vzapps.location
+  resource_group_name = azurerm_resource_group.ne-vzapps.name
   
 
   ip_configuration {
@@ -1064,8 +1064,8 @@ resource "azurerm_network_interface" "ekprodscddicadns-ddimgmt-nic" {
 # Create Prod network interface for Cloud Automation VM
 resource "azurerm_network_interface" "ekprodscddicadns-ddiprd-nic" {
   name                = "ekprodscddicadns-ddiprd-nic"
-  location            = azurerm_resource_group.myrg2.location
-  resource_group_name = azurerm_resource_group.myrg2.name
+  location            = azurerm_resource_group.ne-vzapps.location
+  resource_group_name = azurerm_resource_group.ne-vzapps.name
   
 
   ip_configuration {
@@ -1135,8 +1135,8 @@ resource "azurerm_virtual_machine" "ekprodscddicadns" {
 # create the mgmt network interface for Backup VM
 resource "azurerm_network_interface" "ekprodscddibkp-ddimgmt-nic" {
   name                = "ekprodscddibkp-ddimgmt-nic"
-  location            = azurerm_resource_group.myrg2.location
-  resource_group_name = azurerm_resource_group.myrg2.name
+  location            = azurerm_resource_group.ne-vzapps.location
+  resource_group_name = azurerm_resource_group.ne-vzapps.name
   
 
   ip_configuration {
@@ -1150,8 +1150,8 @@ resource "azurerm_network_interface" "ekprodscddibkp-ddimgmt-nic" {
 }
 resource "azurerm_network_interface" "ekprodscddibkp-ddiprd-nic" {
   name                = "ekprodscddibkp-ddiprd-nic"
-  location            = azurerm_resource_group.myrg2.location
-  resource_group_name = azurerm_resource_group.myrg2.name
+  location            = azurerm_resource_group.ne-vzapps.location
+  resource_group_name = azurerm_resource_group.ne-vzapps.name
   
 
   ip_configuration {
@@ -1166,8 +1166,8 @@ resource "azurerm_network_interface" "ekprodscddibkp-ddiprd-nic" {
 ## create the virtual machine Cloud Automation
 resource "azurerm_virtual_machine" "ekprodscddibkp" {
   name                  = "EKPRODSCDDIBKP"
-  location              = azurerm_resource_group.myrg2.location
-  resource_group_name   = azurerm_resource_group.myrg2.name
+  location              = azurerm_resource_group.ne-vzapps.location
+  resource_group_name   = azurerm_resource_group.ne-vzapps.name
   network_interface_ids = [azurerm_network_interface.ekprodscddibkp-ddimgmt-nic.id,azurerm_network_interface.ekprodscddibkp-ddiprd-nic.id]
   primary_network_interface_id = azurerm_network_interface.ekprodscddibkp-ddimgmt-nic.id
   vm_size               = "Standard_B1ms"
