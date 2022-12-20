@@ -7,7 +7,7 @@ terraform {
   }
   backend "azurerm" {
     resource_group_name   = "jihed"
-    storage_account_name  = "jihed1111"
+    storage_account_name  = "terraformvz"
     container_name        = "jihed"
     key                   = "terraform.tfstate"
     }
@@ -36,7 +36,7 @@ data "azurerm_client_config" "current" {}
 # Create the resource groups pour vzapps
 resource "azurerm_resource_group" "myrg" {
   name     = "rg-tea-we-vzapps"
-  location = "East US"
+  location = "West Europe"
 }
 #
 #
@@ -46,7 +46,7 @@ resource "azurerm_resource_group" "myrg" {
 #
 ## Keyvault creation code
 resource "azurerm_key_vault" "keyvault" {
-  name                = "prod-wevzapps-test"
+  name                = "prod-kv-we-test"
   location            = azurerm_resource_group.myrg.location
   resource_group_name = azurerm_resource_group.myrg.name
   tenant_id           = data.azurerm_client_config.current.tenant_id
@@ -314,13 +314,36 @@ resource "azurerm_subnet_network_security_group_association" "weddiprd-nsg" {
 }
 
 
+# Create storage account for boot diagnostics
+#####
+#####
+####
+####
+#### remove test from the storage name in production deployment
+####
+####
+####
+####
+resource "azurerm_storage_account" "bootdiastorageaccount-we" {
+    name                        = "bootsateawedtest11"
+    location                     = azurerm_resource_group.myrg.location
+    resource_group_name          = azurerm_resource_group.myrg.name
+    account_tier                = "Standard"
+    account_replication_type    = "LRS"
+
+    tags = {
+        
+    }
+}
+
+/*
 ##########################################################
 ###### create Grid Master virtual machine ################
 ##########################################################
 # Create a resource group if it doesn't exist
 resource "azurerm_resource_group" "ekprodweddigm-rg" {
     name     = "ekprodweddigm-rg"
-    location = "eastus"
+    location = "West Europe"
 
     tags = {
         environment = "DDI-Prod"
@@ -357,32 +380,12 @@ resource "azurerm_network_interface" "ekprodweddigm-ddiprd-nic" {
     
   }
 }
-# Create storage account for boot diagnostics
-#####
-#####
-####
-####
-#### remove test from the storage name in production deployment
-####
-####
-####
-####
-resource "azurerm_storage_account" "bootdiastorageaccount-we" {
-    name                        = "bootsateaweddivzappstest"
-    location                     = azurerm_resource_group.myrg.location
-    resource_group_name          = azurerm_resource_group.myrg.name
-    account_tier                = "Standard"
-    account_replication_type    = "LRS"
 
-    tags = {
-        environment = "DDI Prod"
-    }
-}
 ## create the virtual machine Grid Master
 resource "azurerm_virtual_machine" "ekprodweddigm" {
   name                  = "EKPRODWEDDIGM"
-  location              = azurerm_resource_group.myrg.location
-  resource_group_name   = azurerm_resource_group.myrg.name
+  location              = azurerm_resource_group.ekprodweddigm-rg.location
+  resource_group_name   = azurerm_resource_group.ekprodweddigm-rg.name
   network_interface_ids = [azurerm_network_interface.ekprodweddigm-ddimgmt-nic.id,azurerm_network_interface.ekprodweddigm-ddiprd-nic.id]
   primary_network_interface_id = azurerm_network_interface.ekprodweddigm-ddimgmt-nic.id
   vm_size                  = "Standard_DS12_v2"
@@ -392,7 +395,7 @@ resource "azurerm_virtual_machine" "ekprodweddigm" {
 
   storage_image_reference {
         publisher = "infoblox"
-        offer     = "infoblox-ib-v1425"
+        offer     = "infoblox-vm-appliances-862"
         sku       = "vsot"
         version   = "862.49947.0"
     }  
@@ -400,13 +403,13 @@ resource "azurerm_virtual_machine" "ekprodweddigm" {
     name              = "osdisk-gm-we-vzapps"
     caching           = "ReadWrite"
     create_option     = "FromImage"
-    managed_disk_type = "Standard_LRS"
+    managed_disk_type = "Premium_LRS"
     }
   # Specify the Azure marketplace item
   plan {
         name = "vsot"
         publisher = "infoblox"
-        product = "infoblox-ib-v1425"
+        product = "infoblox-vm-appliances-862"
     }
   os_profile_linux_config {
     disable_password_authentication = false
@@ -428,13 +431,14 @@ resource "azurerm_virtual_machine" "ekprodweddigm" {
     }
 }
 
+
 ########################################################
 ###### create Reporting virtual machine ################
 ##########################################################
 # Create a resource group if it doesn't exist
 resource "azurerm_resource_group" "ekprodweddirpt-rg" {
     name     = "ekprodweddirpt-rg"
-    location = "eastus"
+    location = "West Europe"
 
     tags = {
         
@@ -474,8 +478,8 @@ resource "azurerm_network_interface" "ekprodweddirpt-ddiprd-nic" {
 ## create the virtual machine Reporting
 resource "azurerm_virtual_machine" "ekprodweddirpt" {
   name                  = "EKPRODWEDDIRPT"
-  location              = azurerm_resource_group.myrg.location
-  resource_group_name   = azurerm_resource_group.myrg.name
+  location              = azurerm_resource_group.ekprodweddirpt-rg.location
+  resource_group_name   = azurerm_resource_group.ekprodweddirpt-rg.name
   network_interface_ids = [azurerm_network_interface.ekprodweddirpt-ddimgmt-nic.id,azurerm_network_interface.ekprodweddirpt-ddiprd-nic.id]
   primary_network_interface_id = azurerm_network_interface.ekprodweddirpt-ddimgmt-nic.id
   vm_size                  = "Standard_DS14_v2"
@@ -485,29 +489,29 @@ resource "azurerm_virtual_machine" "ekprodweddirpt" {
 
   storage_image_reference {
         publisher = "infoblox"
-        offer     = "infoblox-ib-v5005"
-        sku       = "vsot"
+        offer     = "infoblox-vm-appliances-862"
+        sku       = "ib-v5005"
         version   = "862.49947.0"
     }  
   storage_os_disk {
     name              = "osdisk-rpt-we-vzapps"
     caching           = "ReadWrite"
     create_option     = "FromImage"
-    managed_disk_type = "Standard_LRS"
+    managed_disk_type = "Premium_LRS"
   }
   storage_data_disk {
     name  = "datadisk-rpt-we-vzapps"
     caching = "ReadWrite"
     disk_size_gb = 512
-    managed_disk_type = "Standard_LRS"
+    managed_disk_type = "Premium_LRS"
     create_option = "Empty"
     lun = "1"
   }
   # Specify the Azure marketplace item
     plan {
-        name = "vsot"
+        name = "ib-v5005"
         publisher = "infoblox"
-        product = "infoblox-cp-v5005"
+        product = "infoblox-vm-appliances-862"
     }
   os_profile_linux_config {
     disable_password_authentication = false
@@ -527,6 +531,7 @@ resource "azurerm_virtual_machine" "ekprodweddirpt" {
     
   }
 }
+*/
 
 ##########################################################
 ###### create Cloud Automation virtual machine ################
@@ -534,7 +539,7 @@ resource "azurerm_virtual_machine" "ekprodweddirpt" {
 # Create a resource group if it doesn't exist
 resource "azurerm_resource_group" "ekprodweddicadns-rg" {
     name     = "ekprodweddicadns-rg"
-    location = "eastus"
+    location = "West Europe"
 
     tags = {
         
@@ -575,8 +580,8 @@ resource "azurerm_network_interface" "ekprodweddicadns-ddiprd-nic" {
 ########################################################
 resource "azurerm_virtual_machine" "ekprodweddicadns" {
   name                  = "EKPRODWEDDICADNS"
-  location              = azurerm_resource_group.myrg.location
-  resource_group_name   = azurerm_resource_group.myrg.name
+  location              = azurerm_resource_group.ekprodweddicadns-rg.location
+  resource_group_name   = azurerm_resource_group.ekprodweddicadns-rg.name
   network_interface_ids = [azurerm_network_interface.ekprodweddicadns-ddimgmt-nic.id,azurerm_network_interface.ekprodweddicadns-ddiprd-nic.id]
   primary_network_interface_id = azurerm_network_interface.ekprodweddicadns-ddiprd-nic.id
   vm_size                  = "Standard_DS11_v2"
@@ -586,21 +591,21 @@ resource "azurerm_virtual_machine" "ekprodweddicadns" {
 
   storage_image_reference {
         publisher = "infoblox"
-        offer     = "infoblox-cp-v805"
-        sku       = "vsot"
+        offer     = "infoblox-vm-appliances-862"
+        sku       = "cp-v805"
         version   = "862.49947.0"
   }  
   storage_os_disk {
     name              = "osdisk-cadns-we-vzapps"
     caching           = "ReadWrite"
     create_option     = "FromImage"
-    managed_disk_type = "Standard_LRS"
+    managed_disk_type = "Premium_LRS"
   }
   # Specify the Azure marketplace item
     plan {
-        name = "vsot"
+        name = "cp-v805"
         publisher = "infoblox"
-        product = "infoblox-cp-v805"
+        product = "infoblox-vm-appliances-862"
     }
   os_profile_linux_config {
     disable_password_authentication = false
@@ -628,19 +633,19 @@ resource "azurerm_virtual_machine" "ekprodweddicadns" {
 
 #################################################################
 #                                                               #
-#                Sweden Central Verizon App                     #
+#                North Europe Verizon App                     #
 #                                                               #
 #################################################################
 
 # Create the resource groups pour vzapps2
 resource "azurerm_resource_group" "myrg2" {
   name     = "rg-tea-sc-vzapps"
-  location = "East US"
+  location = "North Europe"
 }
 
 ## Keyvault creation code
 resource "azurerm_key_vault" "keyvault2" {
-  name                = "prod-scvzapps-test"
+  name                = "prod-kv-scvzapps-test"
   location            = azurerm_resource_group.myrg2.location
   resource_group_name = azurerm_resource_group.myrg2.name
   tenant_id           = data.azurerm_client_config.current.tenant_id
@@ -909,14 +914,36 @@ resource "azurerm_subnet_network_security_group_association" "scddiprd-nsg" {
   network_security_group_id = azurerm_network_security_group.scddiprd.id
 }
 
+# Create storage account for boot diagnostics
+#####
+#####
+####
+####
+#### remove test from the storage name in production deployment
+####
+####
+####
+####
+resource "azurerm_storage_account" "bootdiastorageaccount-sc" {
+    name                        = "bootsatappstest"
+    location                     = azurerm_resource_group.myrg2.location
+    resource_group_name          = azurerm_resource_group.myrg2.name
+    account_tier                = "Standard"
+    account_replication_type    = "LRS"
 
+    tags = {
+        
+    }
+}
+
+/*
 ##########################################################
 ###### create Grid Master virtual machine candifate ################
 ##########################################################
 # Create a resource group if it doesn't exist
-resource "azurerm_resource_group" "ekprodscddigm-rg" {
+resource "azurerm_resource_group" "ekprodscddigmc-rg" {
     name     = "ekprodscddigmc-rg"
-    location = "eastus"
+    location = "North Europe"
 
     tags = {
         
@@ -953,32 +980,12 @@ resource "azurerm_network_interface" "ekprodscddigmc-ddiprd-nic" {
     
   }
 }
-# Create storage account for boot diagnostics
-#####
-#####
-####
-####
-#### remove test from the storage name in production deployment
-####
-####
-####
-####
-resource "azurerm_storage_account" "bootdiastorageaccount-sc" {
-    name                        = "bootsateascddivzappstest"
-    location                     = azurerm_resource_group.myrg2.location
-    resource_group_name          = azurerm_resource_group.myrg2.name
-    account_tier                = "Standard"
-    account_replication_type    = "LRS"
 
-    tags = {
-        
-    }
-}
 ## create the virtual machine Grid Master candidate 
 resource "azurerm_virtual_machine" "ekprodscddigmc" {
   name                  = "EKPRODSCDDIGMC"
-  location              = azurerm_resource_group.myrg2.location
-  resource_group_name   = azurerm_resource_group.myrg2.name
+  location              = azurerm_resource_group.ekprodscddigmc-rg.location
+  resource_group_name   = azurerm_resource_group.ekprodscddigmc-rg.name
   network_interface_ids = [azurerm_network_interface.ekprodscddigmc-ddimgmt-nic.id,azurerm_network_interface.ekprodscddigmc-ddiprd-nic.id]
   primary_network_interface_id = azurerm_network_interface.ekprodscddigmc-ddimgmt-nic.id
   vm_size                  = "Standard_DS12_v2"
@@ -988,7 +995,7 @@ resource "azurerm_virtual_machine" "ekprodscddigmc" {
 
   storage_image_reference {
         publisher = "infoblox"
-        offer     = "infoblox-ib-v1425"
+        offer     = "infoblox-vm-appliances-862"
         sku       = "vsot"
         version   = "862.49947.0"
     }  
@@ -996,13 +1003,13 @@ resource "azurerm_virtual_machine" "ekprodscddigmc" {
     name              = "osdisk-gmc-sc-vzapps"
     caching           = "ReadWrite"
     create_option     = "FromImage"
-    managed_disk_type = "Standard_LRS"
+    managed_disk_type = "Premium_LRS"
     }
   # Specify the Azure marketplace item
   plan {
         name = "vsot"
         publisher = "infoblox"
-        product = "infoblox-ib-v1425"
+        product = "infoblox-vm-appliances-862"
     }
   os_profile_linux_config {
     disable_password_authentication = false
@@ -1024,13 +1031,16 @@ resource "azurerm_virtual_machine" "ekprodscddigmc" {
     }
 }
 
+
+
+
 ##########################################################
 ###### create Cloud Automation Replica virtual machine ################
 ##########################################################
 # Create a resource group if it doesn't exist
 resource "azurerm_resource_group" "ekprodscddicadns-rg" {
     name     = "ekprodscddicadns-rg"
-    location = "eastus"
+    location = "North Europe"
 
     tags = {
         
@@ -1071,10 +1081,10 @@ resource "azurerm_network_interface" "ekprodscddicadns-ddiprd-nic" {
 ########################################################
 resource "azurerm_virtual_machine" "ekprodscddicadns" {
   name                  = "EKPRODSCDDICADNS"
-  location              = azurerm_resource_group.myrg2.location
-  resource_group_name   = azurerm_resource_group.myrg2.name
+  location              = azurerm_resource_group.ekprodscddicadns-rg.location
+  resource_group_name   = azurerm_resource_group.ekprodscddicadns-rg.name
   network_interface_ids = [azurerm_network_interface.ekprodscddicadns-ddimgmt-nic.id,azurerm_network_interface.ekprodscddicadns-ddiprd-nic.id]
-  primary_network_interface_id = azurerm_network_interface.ekprodweddicadns-ddiprd-nic.id
+  primary_network_interface_id = azurerm_network_interface.ekprodscddicadns-ddiprd-nic.id
   vm_size                  = "Standard_DS11_v2"
 
   #delete_os_disk_on_termination = true
@@ -1082,21 +1092,21 @@ resource "azurerm_virtual_machine" "ekprodscddicadns" {
 
   storage_image_reference {
         publisher = "infoblox"
-        offer     = "infoblox-cp-v805"
-        sku       = "vsot"
+        offer     = "infoblox-vm-appliances-862"
+        sku       = "cp-v805"
         version   = "862.49947.0"
   }  
   storage_os_disk {
     name              = "osdisk-cadns-sc-vzapps"
     caching           = "ReadWrite"
     create_option     = "FromImage"
-    managed_disk_type = "Standard_LRS"
+    managed_disk_type = "Premium_LRS"
   }
   # Specify the Azure marketplace item
     plan {
-        name = "vsot"
+        name = "cp-v805"
         publisher = "infoblox"
-        product = "infoblox-cp-v805"
+        product = "infoblox-vm-appliances-862"
     }
   os_profile_linux_config {
     disable_password_authentication = false
@@ -1118,26 +1128,7 @@ resource "azurerm_virtual_machine" "ekprodscddicadns" {
   }
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+*/
 
 ###### create Backup virtual machine ################
 ##########################################################
@@ -1179,7 +1170,7 @@ resource "azurerm_virtual_machine" "ekprodscddibkp" {
   resource_group_name   = azurerm_resource_group.myrg2.name
   network_interface_ids = [azurerm_network_interface.ekprodscddibkp-ddimgmt-nic.id,azurerm_network_interface.ekprodscddibkp-ddiprd-nic.id]
   primary_network_interface_id = azurerm_network_interface.ekprodscddibkp-ddimgmt-nic.id
-  vm_size               = "Standard_B1_ms"
+  vm_size               = "Standard_B1ms"
 
   delete_os_disk_on_termination = true
   delete_data_disks_on_termination = true
@@ -1200,7 +1191,7 @@ resource "azurerm_virtual_machine" "ekprodscddibkp" {
     name  = "datadisk-bkp"
     caching = "ReadWrite"
     disk_size_gb = 512
-    managed_disk_type = "Standard_LRS"
+    managed_disk_type = "Premium_LRS"
     create_option = "Empty"
     lun = "1"
   }
