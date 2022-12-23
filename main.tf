@@ -1,3 +1,20 @@
+/*
+az login
+az group create -l westeurope -n vzapps-tf
+az storage account check-name -–name terraformac
+az storage account create --name terraformac --resource-group vzapps-tf --location westeurope --sku Standard_LRS --kind Storage
+az storage container create -n terraform --account-name terraformac
+
+az term accept --product "infoblox-vm-appliances-862" --plan "cp-v1405" --publisher "infoblox"
+az term accept --product "infoblox-vm-appliances-862" --plan "vsot" --publisher "infoblox"
+az term accept --product "infoblox-vm-appliances-862" --plan "cp-v805" --publisher "infoblox"
+az term accept --product "infoblox-vm-appliances-862" --plan "ib-v5005" --publisher "infoblox"
+
+
+*/
+  
+
+
 # Azure Provider source and version being used
 terraform {
   required_providers {
