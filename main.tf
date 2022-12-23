@@ -20,12 +20,9 @@ provider "azurerm" {
       recover_soft_deleted_key_vaults = true
     }
   }
-
     skip_provider_registration = true
-
 }
 data "azurerm_client_config" "current" {}
-
 
 #################################################################
 #                                                               #
@@ -33,20 +30,14 @@ data "azurerm_client_config" "current" {}
 #                                                               #
 ##################################################################
 
-# Create the resource groups pour vzapps
+# Create the resource groups pour we-vzapps 
 resource "azurerm_resource_group" "we-vzapps" {
   name     = "rg-tea-we-vzapps"
   location = "West Europe"
 }
-#
-#
-# Change keyvault name for Prod
-#
-#
-#
-## Keyvault creation code
+# Keyvault creation code
 resource "azurerm_key_vault" "keyvault" {
-  name                = "prod-kv-we-test"
+  name                = "kv-tea-we-prod-vzapps-t"
   location            = azurerm_resource_group.we-vzapps.location
   resource_group_name = azurerm_resource_group.we-vzapps.name
   tenant_id           = data.azurerm_client_config.current.tenant_id
@@ -430,7 +421,7 @@ resource "azurerm_virtual_machine" "ekprodweddigm" {
     environment = "DDI-Prod"
     }
 }
-
+*/
 
 ########################################################
 ###### create Reporting virtual machine ################
@@ -482,7 +473,7 @@ resource "azurerm_virtual_machine" "ekprodweddirpt" {
   resource_group_name   = azurerm_resource_group.ekprodweddirpt-rg.name
   network_interface_ids = [azurerm_network_interface.ekprodweddirpt-ddimgmt-nic.id,azurerm_network_interface.ekprodweddirpt-ddiprd-nic.id]
   primary_network_interface_id = azurerm_network_interface.ekprodweddirpt-ddimgmt-nic.id
-  vm_size                  = "Standard_DS14_v2"
+  vm_size                  = "Standard_DS12_v2"
 
   #delete_os_disk_on_termination = true
   #delete_data_disks_on_termination = true
@@ -524,14 +515,14 @@ resource "azurerm_virtual_machine" "ekprodweddirpt" {
   os_profile {
     computer_name  = "ekprodweddirpt"
     admin_username = "vzadmin"
-    admin_password = azurerm_key_vault_secret.RP-adminuser.value
+    admin_password = "dBVW[}#Nw}weLR}mX6N5"
   }
   
   tags = {
     
   }
 }
-*/
+/*
 
 ##########################################################
 ###### create Cloud Automation virtual machine ################
@@ -626,7 +617,7 @@ resource "azurerm_virtual_machine" "ekprodweddicadns" {
     
   }
 }
-
+*/
 
 
 
@@ -645,7 +636,7 @@ resource "azurerm_resource_group" "ne-vzapps" {
 
 ## Keyvault creation code
 resource "azurerm_key_vault" "keyvault2" {
-  name                = "prod-kv-scvzapps-test"
+  name                = "prod-kv-scvzapps-t"
   location            = azurerm_resource_group.ne-vzapps.location
   resource_group_name = azurerm_resource_group.ne-vzapps.name
   tenant_id           = data.azurerm_client_config.current.tenant_id
@@ -936,7 +927,7 @@ resource "azurerm_storage_account" "bootdiastorageaccount-sc" {
     }
 }
 
-/*
+
 ##########################################################
 ###### create Grid Master virtual machine candifate ################
 ##########################################################
@@ -1031,7 +1022,7 @@ resource "azurerm_virtual_machine" "ekprodscddigmc" {
     }
 }
 
-
+/*
 
 
 ##########################################################
@@ -1128,7 +1119,7 @@ resource "azurerm_virtual_machine" "ekprodscddicadns" {
   }
 }
 
-*/
+
 
 ###### create Backup virtual machine ################
 ##########################################################
@@ -1207,3 +1198,4 @@ resource "azurerm_virtual_machine" "ekprodscddibkp" {
     
   }
 }
+*/
